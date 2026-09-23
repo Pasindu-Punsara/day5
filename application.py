@@ -1,559 +1,174 @@
-```python
 from flask import Flask, render_template_string, jsonify
 from datetime import datetime
 import os
 
-# Replace this with your actual GitHub repository URL
-GITHUB_REPO_URL = "https://github.com/your-username/your-repo-name"
+# Specify your actual GitHub repository URL here
+GITHUB_REPO_URL = "https://github.com/your-username/your-repo-name" 
 
 application = Flask(__name__)
 
+# HTML template styled with Tailwind CSS (Cyber-Tech Theme)
 HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>SLT-MOBITEL | AI & Data Unit</title>
-
+    <title>Project: AURA | AWS Elastic Beanstalk</title>
     <script src="https://cdn.tailwindcss.com"></script>
-
     <script>
+        // Simulate a running server clock
         function updateClock() {
             const now = new Date();
-
-            document.getElementById('server-time').textContent =
-                now.toISOString().replace('T', ' ').substring(0, 19) + ' UTC';
+            document.getElementById('server-time').textContent = now.toISOString().replace('T', ' ').substr(0, 19) + ' UTC';
         }
-
         setInterval(updateClock, 1000);
-        window.onload = updateClock;
     </script>
-
     <style>
+        /* Custom font and scanline effect */
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
         body {
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Share+Tech+Mono', monospace;
         }
-
-        .gradient-bg {
-            background:
-                radial-gradient(circle at top right,
-                rgba(0, 120, 255, 0.18),
-                transparent 40%),
-                radial-gradient(circle at bottom left,
-                rgba(220, 0, 50, 0.12),
-                transparent 40%),
-                #07111f;
-        }
-
-        .glass {
-            background: rgba(10, 25, 45, 0.75);
-            backdrop-filter: blur(10px);
+        .scanlines::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.15) 3px,
+                transparent 3px
+            );
+            pointer-events: none;
+            z-index: 10;
         }
     </style>
 </head>
+<body class="bg-black text-cyan-400 min-h-screen flex flex-col justify-between scanlines overflow-hidden">
+    
+    <!-- Background grid effect -->
+    <div class="fixed inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/dark-dotted-squares.png')]"></div>
 
-<body class="gradient-bg text-white min-h-screen">
-
-    <!-- Header -->
-    <header class="border-b border-blue-900/50 glass">
-
-        <div class="max-w-7xl mx-auto px-6 py-5
-                    flex justify-between items-center">
-
-            <div class="flex items-center space-x-4">
-
-                <!-- SLT Logo Text -->
-                <div class="flex items-center">
-
-                    <div class="bg-blue-600 rounded-lg px-3 py-2
-                                font-bold text-xl">
-                        SLT
-                    </div>
-
-                    <div class="ml-3">
-                        <div class="font-bold text-lg">
-                            SLT-MOBITEL
-                        </div>
-
-                        <div class="text-xs text-blue-300">
-                            AI & DATA UNIT
-                        </div>
-                    </div>
-
-                </div>
-
+    <!-- Header / Navbar -->
+    <header class="relative z-20 w-full py-4 px-6 border-b border-cyan-950 flex justify-between items-center max-w-7xl mx-auto bg-black/50 backdrop-blur-sm">
+        <div class="flex items-center space-x-3">
+            <div class="relative h-3 w-3 flex items-center justify-center">
+                <div class="absolute h-full w-full bg-cyan-500 rounded-full animate-ping opacity-75"></div>
+                <div class="relative h-2 w-2 bg-cyan-300 rounded-full"></div>
             </div>
-
-            <div class="hidden md:block">
-
-                <span class="px-4 py-2 rounded-full
-                             border border-green-500/40
-                             bg-green-500/10
-                             text-green-400 text-sm">
-
-                    ● SYSTEM OPERATIONAL
-
-                </span>
-
-            </div>
-
+            <span class="font-bold text-sm tracking-widest uppercase text-cyan-300">SYS_ID: AURA_CORE_1</span>
         </div>
-
+        <div class="text-xs px-3 py-1 rounded border border-cyan-900 bg-cyan-950/50 text-cyan-500">
+            AWS_REGION: {{ aws_region }}
+        </div>
     </header>
 
-
-    <!-- Main -->
-    <main class="max-w-7xl mx-auto px-6 py-12">
-
-        <!-- Hero -->
-        <section class="text-center mb-12">
-
-            <div class="inline-block mb-4
-                        px-4 py-2 rounded-full
-                        bg-blue-600/10
-                        border border-blue-500/30
-                        text-blue-300 text-sm">
-
-                AI & DIGITAL TRANSFORMATION
-
-            </div>
-
-            <h1 class="text-4xl md:text-6xl font-bold mb-5">
-
-                SLT-MOBITEL
-                <span class="text-blue-400">
-                    AI Platform
-                </span>
-
-            </h1>
-
-            <p class="text-gray-400 max-w-2xl mx-auto text-lg">
-
-                Empowering Sri Lanka's digital future through
-                Artificial Intelligence, Data and Cloud Technologies.
-
-            </p>
-
-        </section>
-
-
-        <!-- Status Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-
-
-            <!-- Application -->
-            <div class="glass border border-blue-900/50
-                        rounded-xl p-6">
-
-                <div class="text-sm text-gray-400 mb-2">
-                    APPLICATION STATUS
-                </div>
-
-                <div class="flex items-center space-x-3">
-
-                    <div class="h-4 w-4 bg-green-500
-                                rounded-full animate-pulse">
+    <!-- Main Content Grid -->
+    <main class="flex-grow flex items-center justify-center px-6 py-8 relative z-20">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 w-full max-w-7xl h-auto md:h-[70vh]">
+            
+            <!-- Left Panel: Status -->
+            <div class="md:col-span-3 bg-black border border-cyan-900 p-8 rounded-lg shadow-inner flex flex-col justify-between">
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between border-b border-cyan-900 pb-2 mb-4">
+                        <h1 class="text-4xl md:text-6xl font-extrabold text-white tracking-tight uppercase">DEPLOYMENT_</h1>
+                        <span class="text-5xl font-black text-green-400">SUCCESS</span>
                     </div>
 
-                    <span class="text-2xl font-bold text-green-400">
-                        OPERATIONAL
-                    </span>
-
+                    <div class="text-cyan-600 text-lg leading-relaxed max-w-3xl">
+                        <p class="animate-pulse">/// STATUS: CORE NODE OPERATIONAL. DEPLOYMENT PIPELINE [GITHUB_ACTIONS] VALIDATED.</p>
+                        <p class="mt-2">AWS Elastic Beanstalk successfully initialized with Python/Gunicorn runtime.</p>
+                        <p class="mt-2 text-white">ENVIRONMENT: {{ env_name }}</p>
+                    </div>
                 </div>
 
+                <!-- Data Terminal -->
+                <div class="bg-gray-950 p-5 rounded font-mono text-xs mt-8 border border-gray-800 text-cyan-300 space-y-2 overflow-auto h-32">
+                    <p>> INITIALIZING EB DEPLOYMENT... [OK]</p>
+                    <p>> VERIFYING REQUIREMENTS.TXT... [OK]</p>
+                    <p>> STARTING GUNICORN... [OK]</p>
+                    <p>> APPLICATION HEALTH CHECK: ACTIVE... [OK]</p>
+                    <p class="text-green-400">> > > SYSTEM READY.</p>
+                </div>
             </div>
 
-
-            <!-- AWS -->
-            <div class="glass border border-blue-900/50
-                        rounded-xl p-6">
-
-                <div class="text-sm text-gray-400 mb-2">
-                    CLOUD PLATFORM
-                </div>
-
-                <div class="text-2xl font-bold text-blue-400">
-                    AWS
-                </div>
-
-                <div class="text-sm text-gray-500 mt-1">
-                    Elastic Beanstalk
-                </div>
-
-            </div>
-
-
-            <!-- Region -->
-            <div class="glass border border-blue-900/50
-                        rounded-xl p-6">
-
-                <div class="text-sm text-gray-400 mb-2">
-                    AWS REGION
-                </div>
-
-                <div class="text-2xl font-bold">
-                    {{ aws_region }}
-                </div>
-
-            </div>
-
-        </div>
-
-
-        <!-- Main Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-
-            <!-- Deployment -->
-            <div class="lg:col-span-2 glass
-                        border border-blue-900/50
-                        rounded-xl p-8">
-
-                <div class="flex justify-between
-                            items-center mb-8">
-
-                    <div>
-
-                        <div class="text-sm text-blue-400 mb-2">
-                            DEPLOYMENT
+            <!-- Right Panel: System Info & Links -->
+            <div class="bg-black border border-cyan-900 p-6 rounded-lg shadow-inner space-y-6 flex flex-col justify-between">
+                
+                <div>
+                    <h2 class="text-xl font-bold text-cyan-200 uppercase border-b border-cyan-900 pb-2 mb-4">SYSTEM_STATS</h2>
+                    
+                    <div class="space-y-4">
+                        <div class="bg-cyan-950 p-4 rounded border border-cyan-900">
+                            <p class="text-xs text-cyan-600 uppercase tracking-wider">SERVER_TIME_UTC</p>
+                            <p id="server-time" class="text-lg text-white font-bold mt-1 font-mono">{{ current_time }}</p>
                         </div>
 
-                        <h2 class="text-3xl font-bold">
-                            SLT AI APPLICATION
-                        </h2>
-
+                        <div class="bg-cyan-950 p-4 rounded border border-cyan-900">
+                            <p class="text-xs text-cyan-600 uppercase tracking-wider">ENV_HEALTH</p>
+                            <p class="text-green-400 font-bold mt-1 text-lg flex items-center space-x-2">
+                                <span class="relative flex h-3 w-3">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                                </span>
+                                <span>NOMINAL</span>
+                            </p>
+                        </div>
                     </div>
-
-                    <div class="bg-green-500/10
-                                border border-green-500/30
-                                px-4 py-2 rounded-lg
-                                text-green-400 font-bold">
-
-                        SUCCESS
-
-                    </div>
-
                 </div>
 
-
-                <div class="space-y-4 text-gray-300">
-
-                    <div class="flex items-center">
-                        <span class="text-green-400 mr-3">
-                            ✓
-                        </span>
-
-                        AWS Elastic Beanstalk initialized
-                    </div>
-
-                    <div class="flex items-center">
-                        <span class="text-green-400 mr-3">
-                            ✓
-                        </span>
-
-                        Python / Flask application running
-                    </div>
-
-                    <div class="flex items-center">
-                        <span class="text-green-400 mr-3">
-                            ✓
-                        </span>
-
-                        Gunicorn application server active
-                    </div>
-
-                    <div class="flex items-center">
-                        <span class="text-green-400 mr-3">
-                            ✓
-                        </span>
-
-                        Application health check passed
-                    </div>
-
-                </div>
-
-
-                <!-- Terminal -->
-                <div class="mt-8 bg-black/60
-                            border border-gray-800
-                            rounded-lg p-5
-                            font-mono text-sm">
-
-                    <p class="text-gray-500">
-                        $ slt-ai-system status
-                    </p>
-
-                    <p class="text-green-400 mt-2">
-                        [OK] AI PLATFORM ONLINE
-                    </p>
-
-                    <p class="text-green-400">
-                        [OK] CLOUD ENVIRONMENT ACTIVE
-                    </p>
-
-                    <p class="text-green-400">
-                        [OK] APPLICATION HEALTHY
-                    </p>
-
-                    <p class="text-blue-400 mt-2">
-                        [INFO] SLT-MOBITEL AI & DATA UNIT
-                    </p>
-
-                </div>
-
-            </div>
-
-
-            <!-- System Information -->
-            <div class="glass border border-blue-900/50
-                        rounded-xl p-6">
-
-                <h2 class="text-xl font-bold mb-6">
-                    SYSTEM INFORMATION
-                </h2>
-
-
-                <!-- Time -->
-                <div class="bg-blue-950/40
-                            border border-blue-900/50
-                            rounded-lg p-4 mb-4">
-
-                    <div class="text-xs text-gray-500">
-                        SERVER TIME
-                    </div>
-
-                    <div id="server-time"
-                         class="text-lg font-mono mt-1">
-
-                        {{ current_time }}
-
-                    </div>
-
-                </div>
-
-
-                <!-- Environment -->
-                <div class="bg-blue-950/40
-                            border border-blue-900/50
-                            rounded-lg p-4 mb-4">
-
-                    <div class="text-xs text-gray-500">
-                        ENVIRONMENT
-                    </div>
-
-                    <div class="text-lg font-bold mt-1">
-                        {{ env_name }}
-                    </div>
-
-                </div>
-
-
-                <!-- Service -->
-                <div class="bg-blue-950/40
-                            border border-blue-900/50
-                            rounded-lg p-4">
-
-                    <div class="text-xs text-gray-500">
-                        SERVICE
-                    </div>
-
-                    <div class="text-lg font-bold mt-1">
-                        SLT AI PLATFORM
-                    </div>
-
-                </div>
-
-
-                <!-- Buttons -->
-                <div class="mt-6 space-y-3">
-
-                    <a href="/health"
-                       class="block text-center
-                              bg-blue-600 hover:bg-blue-700
-                              px-5 py-3 rounded-lg
-                              font-bold transition">
-
-                        CHECK SYSTEM HEALTH
-
+                <!-- Link Section -->
+                <div class="space-y-3 pt-6 border-t border-cyan-900">
+                    <a href="/health" class="block w-full text-center px-6 py-3 rounded bg-cyan-900 hover:bg-cyan-800 text-white font-bold text-sm transition uppercase tracking-wider shadow-lg shadow-cyan-900/20">
+                        RUN HEALTH CHECK
                     </a>
-
-
-                    <a href="{{ github_url }}"
-                       target="_blank"
-                       class="block text-center
-                              border border-gray-700
-                              hover:bg-gray-800
-                              px-5 py-3 rounded-lg
-                              transition">
-
-                        VIEW SOURCE CODE
-
+                    <a href="{{ github_url }}" target="_blank" class="block w-full text-center px-6 py-3 rounded bg-gray-900 hover:bg-gray-800 text-cyan-300 font-bold text-sm border border-gray-700 transition uppercase tracking-wider flex items-center justify-center space-x-2">
+                        <svg height="20" width="20" class="fill-current" viewBox="0 0 16 16" version="1.1" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"></path></svg>
+                        <span>SOURCE_CODE_REPO</span>
                     </a>
-
                 </div>
-
             </div>
 
         </div>
-
-
-        <!-- AI Services -->
-        <section class="mt-10">
-
-            <h2 class="text-2xl font-bold mb-6">
-                AI & DATA SERVICES
-            </h2>
-
-
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-                <div class="glass border border-blue-900/50
-                            rounded-lg p-5">
-
-                    <div class="text-blue-400 text-2xl mb-2">
-                        AI
-                    </div>
-
-                    <div class="font-bold">
-                        Artificial Intelligence
-                    </div>
-
-                    <div class="text-sm text-gray-500 mt-1">
-                        AI-powered enterprise solutions
-                    </div>
-
-                </div>
-
-
-                <div class="glass border border-blue-900/50
-                            rounded-lg p-5">
-
-                    <div class="text-blue-400 text-2xl mb-2">
-                        ML
-                    </div>
-
-                    <div class="font-bold">
-                        Machine Learning
-                    </div>
-
-                    <div class="text-sm text-gray-500 mt-1">
-                        Intelligent data-driven models
-                    </div>
-
-                </div>
-
-
-                <div class="glass border border-blue-900/50
-                            rounded-lg p-5">
-
-                    <div class="text-blue-400 text-2xl mb-2">
-                        ☁
-                    </div>
-
-                    <div class="font-bold">
-                        Cloud Computing
-                    </div>
-
-                    <div class="text-sm text-gray-500 mt-1">
-                        AWS cloud infrastructure
-                    </div>
-
-                </div>
-
-
-                <div class="glass border border-blue-900/50
-                            rounded-lg p-5">
-
-                    <div class="text-blue-400 text-2xl mb-2">
-                        DATA
-                    </div>
-
-                    <div class="font-bold">
-                        Data Engineering
-                    </div>
-
-                    <div class="text-sm text-gray-500 mt-1">
-                        Enterprise data solutions
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
     </main>
 
-
     <!-- Footer -->
-    <footer class="border-t border-blue-900/50
-                   py-6 mt-10">
-
-        <div class="max-w-7xl mx-auto px-6
-                    text-center text-sm text-gray-500">
-
-            © SLT-MOBITEL |
-            AI & DATA UNIT |
-            AWS Cloud Application
-
-        </div>
-
+    <footer class="relative z-20 py-4 text-center text-xs text-cyan-900 border-t border-cyan-950 max-w-7xl mx-auto w-full bg-black/50">
+        [AURA_SYSTEM_RUNNING] >> AWS Elastic Beanstalk >> Flask v3.x
     </footer>
 
 </body>
 </html>
 """
 
-
 @application.route('/')
 def home():
-
-    now = datetime.utcnow().strftime(
-        '%Y-%m-%d %H:%M:%S'
-    )
-
-    env_name = os.environ.get(
-        'AWS_EB_ENVIRONMENT_NAME',
-        'LOCAL_DEVELOPMENT'
-    )
-
-    aws_region = os.environ.get(
-        'AWS_REGION',
-        'us-east-1'
-    )
-
+    now = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    # Get environment name from AWS metadata if available, else default
+    env_name = os.environ.get('AWS_EB_ENVIRONMENT_NAME', 'LOCAL_DEBUG')
+    aws_region = os.environ.get('AWS_REGION', 'us-east-1')
+    
     return render_template_string(
-        HTML_TEMPLATE,
+        HTML_TEMPLATE, 
         current_time=now,
         github_url=GITHUB_REPO_URL,
         env_name=env_name,
         aws_region=aws_region
     )
 
-
 @application.route('/health')
 def health_check():
-
     return jsonify({
-
-        "status": "operational",
-
-        "service": "SLT AI Platform",
-
-        "unit": "AI & Data Unit",
-
-        "timestamp_utc":
-            datetime.utcnow().isoformat()
-
+        "status": "nominal",
+        "service_id": "aura-core-1",
+        "timestamp_utc": datetime.utcnow().isoformat()
     }), 200
 
-
 if __name__ == '__main__':
-
-    application.run(
-        host='0.0.0.0',
-        port=5000
-    )
-```
+    # Local development server execution
+    application.run(host='0.0.0.0', port=5000)
